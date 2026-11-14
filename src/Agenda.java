@@ -65,6 +65,80 @@ public class Agenda implements Serializable {
     public int getJornada() {
         return aMinutos(cierre) - aMinutos(apertura);
     }
+
+    /**
+     * Devuelve el número total de citas de la agenda.
+     *
+     * @return Número de citas.
+     */
+    public int getNumCitas() {
+        return citas.size();
+    }
+
+    /**
+     * Devuelve la cita situada en una posición cronológica.
+     *
+     * @param i Posición solicitada (desde 0).
+     * @return Cita en esa posición.
+     * @throws Exception Si la posición está fuera de rango.
+     */
+    public Cita getCitaEn(int i) throws Exception {
+        if (i < 0 || i >= citas.size()) {
+            throw new Exception("La posición no pertenece a la agenda.");
+        }
+        return citas.get(i);
+    }
+    /**
+     * Comprueba si un cliente tiene cita en una fecha.
+     *
+     * @param cliente Identificador del cliente.
+     * @param fecha Fecha consultada.
+     * @return true si tiene cita ese día, false en caso contrario.
+     * @throws Exception Si el cliente o la fecha son inválidos.
+     */
+    public boolean tieneCita(String cliente, LocalDate fecha) throws Exception {
+        if (cliente == null || cliente.isBlank()) {
+            throw new Exception("El cliente no puede ser nulo ni vacío.");
+        }
+        if (fecha == null) {
+            throw new Exception("La fecha no puede ser nula.");
+        }
+        return buscarPosicion(cliente, fecha) >= 0;
+    }
+
+    private int buscarPosicion(String cliente, LocalDate fecha) {
+        for (int i = 0; i < citas.size(); i++) {
+            Cita cita = citas.get(i);
+            if (cita.getFecha().equals(fecha)
+                    && cita.getCliente().equalsIgnoreCase(cliente)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Devuelve la cita de un cliente en una fecha.
+     *
+     * @param cliente Identificador del cliente.
+     * @param fecha Fecha consultada.
+     * @return Cita correspondiente.
+     * @throws Exception Si los datos son inválidos o no existe la cita.
+     */
+    public Cita getCitaDe(String cliente, LocalDate fecha) throws Exception {
+        if (cliente == null || cliente.isBlank()) {
+            throw new Exception("El cliente no puede ser nulo ni vacío.");
+        }
+        if (fecha == null) {
+            throw new Exception("La fecha no puede ser nula.");
+        }
+        int posicion = buscarPosicion(cliente, fecha);
+        if (posicion < 0) {
+            throw new Exception("El cliente no tiene cita en esa fecha.");
+        }
+        return citas.get(posicion);
+    }
+
     private int aMinutos(LocalTime hora) {
         String texto = hora.toString();
         int h = Integer.parseInt(texto.substring(0, 2));
