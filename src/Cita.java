@@ -36,4 +36,42 @@ public class Cita implements Serializable {
         this.inicio = inicio;
         this.duracion = duracion;
     }
+
+    public String getCliente() {
+        return cliente;
+    }
+
+    public LocalDate getFecha() {
+        return fecha;
+    }
+
+    public LocalTime getInicio() {
+        return inicio;
+    }
+
+    public int getDuracion() {
+        return duracion;
+    }
+
+    public LocalTime getFin() {
+        String textoHora = inicio.toString();
+        int h = Integer.parseInt(textoHora.substring(0, 2));
+        int m = Integer.parseInt(textoHora.substring(3, 5));
+        int total = h * 60 + m + duracion;
+        if (total == 24 * 60) {
+            return LocalTime.of(0, 0);
+        }
+        return LocalTime.of(total / 60, total % 60);
+    }
+
+    public Cita conInicio(LocalTime nuevoInicio) throws Exception {
+        return new Cita(cliente, fecha, nuevoInicio, duracion);
+    }
+
+    @Override
+    public String toString() {
+        return inicio + "-" + getFin() + " " + cliente
+                + " (" + duracion + " min)";
+    }
+
 }
