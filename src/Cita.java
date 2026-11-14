@@ -36,23 +36,47 @@ public class Cita implements Serializable {
         this.inicio = inicio;
         this.duracion = duracion;
     }
-
+    /**
+     * Devuelve el cliente de la cita.
+     *
+     * @return Identificador del cliente.
+     */
     public String getCliente() {
         return cliente;
     }
 
+    /**
+     * Devuelve la fecha de la cita.
+     *
+     * @return Fecha de la cita.
+     */
     public LocalDate getFecha() {
         return fecha;
     }
 
+    /**
+     * Devuelve la hora de inicio.
+     *
+     * @return Hora de inicio.
+     */
     public LocalTime getInicio() {
         return inicio;
     }
 
+    /**
+     * Devuelve la duración en minutos.
+     *
+     * @return Duración en minutos.
+     */
     public int getDuracion() {
         return duracion;
     }
 
+    /**
+     * Devuelve la hora de finalización sumando la duración al inicio.
+     *
+     * @return Hora de fin de la cita.
+     */
     public LocalTime getFin() {
         String textoHora = inicio.toString();
         int h = Integer.parseInt(textoHora.substring(0, 2));
@@ -64,6 +88,13 @@ public class Cita implements Serializable {
         return LocalTime.of(total / 60, total % 60);
     }
 
+    /**
+     * Crea una copia de esta cita que comienza a otra hora.
+     *
+     * @param nuevoInicio Nueva hora de inicio.
+     * @return Nueva cita con la hora actualizada.
+     * @throws Exception Si la nueva hora es nula o inválida.
+     */
     public Cita conInicio(LocalTime nuevoInicio) throws Exception {
         return new Cita(cliente, fecha, nuevoInicio, duracion);
     }
@@ -73,5 +104,4 @@ public class Cita implements Serializable {
         return inicio + "-" + getFin() + " " + cliente
                 + " (" + duracion + " min)";
     }
-
 }
