@@ -106,6 +106,13 @@ public class Agenda implements Serializable {
         return buscarPosicion(cliente, fecha) >= 0;
     }
 
+    private boolean cabeEnHorario(LocalTime inicio, int duracion) {
+        int minInicio = aMinutos(inicio);
+        int minFin = minInicio + duracion;
+        return minInicio >= aMinutos(apertura) && minFin <= aMinutos(cierre);
+    }
+
+
     private int buscarPosicion(String cliente, LocalDate fecha) {
         for (int i = 0; i < citas.size(); i++) {
             Cita cita = citas.get(i);
@@ -115,6 +122,29 @@ public class Agenda implements Serializable {
             }
         }
         return -1;
+    }
+
+    /**
+     * Reserva una cita ya creada manteniéndola en orden cronológico.
+     *
+     * @param c Cita que se desea reservar.
+     * @throws Exception Si es nula, sale del horario, duplica cliente o solapa.
+     */
+    public void reservar(Cita c) throws Exception {
+        if (c == null) {
+            throw new Exception("La cita no puede ser nula.");
+        }
+        if (!cabeEnHorario(c.getInicio(), c.getDuracion())) {
+            throw new Exception("La cita queda fuera del horario de la agenda.");
+        }
+        if (tieneCita(c.getCliente(), c.getFecha())) {
+            throw new Exception("El cliente ya tiene una cita ese día.");
+        }
+        if (!estaLibre(c.getFecha(), c.getInicio(), c.getDuracion())) {
+            throw new Exception("El intervalo solicitado no está libre.");
+        }
+
+        citas.add(posicionDeInsercion(c), c);
     }
 
     /**
@@ -144,5 +174,63 @@ public class Agenda implements Serializable {
         int h = Integer.parseInt(texto.substring(0, 2));
         int m = Integer.parseInt(texto.substring(3, 5));
         return h * 60 + m;
+    }
+
+    /**
+     * Indica si un intervalo está dentro del horario y no se solapa con otra cita.
+     *
+     * @param fecha Fecha consultada.
+     * @param h Hora de inicio.
+     * @param d Duración en minutos.
+     * @return true si el intervalo está disponible.
+     * @throws Exception Si algún argumento es nulo o la duración no es positiva.
+     */
+    public boolean estaLibre(LocalDate fecha, LocalTime h, int d)
+            throws Exception {
+        if (fecha == null) {
+            throw new Exception("La fecha no puede ser nula.");
+        }
+        if (h == null) {
+            throw new Exception("La hora de inicio no puede ser nula.");
+        }
+        if (d <= 0) {
+            throw new Exception("La duración debe ser positiva.");
+        }
+        if (!cabeEnHorario(h, d)) {
+            return false;
+        }
+
+        int ini = aMinutos(h);
+        int fin = ini + d;
+        for (Cita cita : citas) {
+            if (cita.getFecha().equals(fecha)
+                    && seSolapan(ini, fin,
+                    aMinutos(cita.getInicio()), aMinutos(cita.getFin()))) {
+                return false;
+            }
+        }
+        return true;
+    }
+    private int posicionDeInsercion(Cita nueva) {
+        int fechaNueva = numeroFecha(nueva.getFecha());
+        int inicioNuevo = aMinutos(nueva.getInicio());
+
+        int posicion = 0;
+        while (posicion < citas.size()) {
+            Cita actual = citas.get(posicion);
+            int fechaActual = numeroFecha(actual.getFecha());
+            if (fechaActual > fechaNueva) {
+                break;
+            }
+            if (fechaActual == fechaNueva
+                    && aMinutos(actual.getInicio()) > inicioNuevo) {
+                break;
+            }
+            posicion++;
+        }
+        return posicion;
+    }
+    private boolean seSolapan(int inicio1, int fin1, int inicio2, int fin2) {
+        return inicio1 < fin2 && inicio2 < fin1;
     }
 }
