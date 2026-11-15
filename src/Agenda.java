@@ -225,6 +225,74 @@ public class Agenda implements Serializable {
         }
         return true;
     }
+
+
+    /**
+     * Retrasa una cita el número de minutos indicado conservando su tipo.
+     *
+     * @param cliente Identificador del cliente.
+     * @param fecha Fecha de la cita.
+     * @param minutos Minutos de retraso.
+     * @throws Exception Si los argumentos son inválidos, no existe o solapa.
+     */
+    public void retrasar(String cliente, LocalDate fecha, int minutos)
+            throws Exception {
+        if (cliente == null || cliente.isBlank()) {
+            throw new Exception("El cliente no puede ser nulo ni vacío.");
+        }
+        if (fecha == null) {
+            throw new Exception("La fecha no puede ser nula.");
+        }
+        if (minutos <= 0) {
+            throw new Exception("El retraso debe ser positivo.");
+        }
+        int posicion = buscarPosicion(cliente, fecha);
+        if (posicion < 0) {
+            throw new Exception(
+                    "No existe una cita de ese cliente en esa fecha.");
+        }
+
+
+        private LocalTime deMinutos(int totalMinutos) {
+            return LocalTime.of(totalMinutos / 60, totalMinutos % 60);
+        }
+
+        Cita anterior = citas.get(posicion);
+        int nuevoInicioMin = aMinutos(anterior.getInicio()) + minutos;
+        int nuevoFinMin = nuevoInicioMin + anterior.getDuracion();
+        if (nuevoFinMin > aMinutos(cierre)) {
+            throw new Exception(
+                    "La cita retrasada terminaría después del cierre.");
+        }
+
+        Cita retrasada = anterior.conInicio(deMinutos(nuevoInicioMin));
+        if (!libreExcepto(retrasada, posicion)) {
+            throw new Exception(
+                    "La cita retrasada se solaparía con otra cita.");
+        }
+
+        citas.remove(posicion);
+        citas.add(posicionDeInsercion(retrasada), retrasada);
+    }
+
+    private boolean libreExcepto(Cita propuesta, int ignorada) {
+        int iniPropuesta = aMinutos(propuesta.getInicio());
+        int finPropuesta = aMinutos(propuesta.getFin());
+
+        for (int i = 0; i < citas.size(); i++) {
+            if (i != ignorada) {
+                Cita existente = citas.get(i);
+                if (existente.getFecha().equals(propuesta.getFecha())
+                        && seSolapan(iniPropuesta, finPropuesta,
+                        aMinutos(existente.getInicio()),
+                        aMinutos(existente.getFin()))) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     private int posicionDeInsercion(Cita nueva) {
         int fechaNueva = numeroFecha(nueva.getFecha());
         int inicioNuevo = aMinutos(nueva.getInicio());
