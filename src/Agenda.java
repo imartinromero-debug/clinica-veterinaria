@@ -407,6 +407,13 @@ public class Agenda implements Serializable {
         return resultado;
     }
 
+    private int numeroFecha(LocalDate fecha) {
+        int dia = Integer.parseInt(String.format("%1$td", fecha));
+        int mes = Integer.parseInt(String.format("%1$tm", fecha));
+        int anno = Integer.parseInt(String.format("%1$tY", fecha));
+        return anno * 10000 + mes * 100 + dia;
+    }
+
     /**
      * Devuelve una lista nueva con las citas entre dos fechas, ambas incluidas.
      *
@@ -415,12 +422,6 @@ public class Agenda implements Serializable {
      * @return Lista ordenada con las citas del periodo.
      * @throws Exception Si alguna fecha es nula o desde es posterior a hasta.
      */
-    private int numeroFecha(LocalDate fecha) {
-        int dia = Integer.parseInt(String.format("%1$td", fecha));
-        int mes = Integer.parseInt(String.format("%1$tm", fecha));
-        int anno = Integer.parseInt(String.format("%1$tY", fecha));
-        return anno * 10000 + mes * 100 + dia;
-    }
     public ArrayList<Cita> getCitasEntre(LocalDate desde, LocalDate hasta)
             throws Exception {
         if (desde == null || hasta == null) {
