@@ -184,6 +184,87 @@ public class Agenda implements Serializable {
 
         citas.remove(posicion);
     }
+
+    public boolean hayHueco(LocalDate fecha, int d) throws Exception {
+        if (fecha == null) {
+            throw new Exception("La fecha no puede ser nula.");
+        }
+        if (d <= 0) {
+            throw new Exception("La duración debe ser positiva.");
+        }
+        return buscarPrimerHueco(fecha, d) != null;
+    }
+
+    /**
+     * Devuelve la primera hora disponible de un día para una duración.
+     *
+     * @param fecha Fecha consultada.
+     * @param d Duración en minutos.
+     * @return Hora de inicio del primer hueco.
+     * @throws Exception Si los datos son inválidos o no hay hueco.
+     */
+    public LocalTime primerHueco(LocalDate fecha, int d) throws Exception {
+        if (fecha == null) {
+            throw new Exception("La fecha no puede ser nula.");
+        }
+        if (d <= 0) {
+            throw new Exception("La duración debe ser positiva.");
+        }
+        LocalTime hueco = buscarPrimerHueco(fecha, d);
+        if (hueco == null) {
+            throw new Exception("No existe un hueco de esa duración.");
+        }
+        return hueco;
+    }
+
+    /**
+     * Busca la primera fecha, a partir de la indicada inclusive, con hueco suficiente.
+     *
+     * @param desde Fecha inicial de búsqueda.
+     * @param d Duración en minutos.
+     * @return Primera fecha con hueco.
+     * @throws Exception Si desde es nula o la duración no cabe en una jornada.
+     */
+    public LocalDate primerDiaConHueco(LocalDate desde, int d) throws Exception {
+        if (desde == null) {
+            throw new Exception("La fecha no puede ser nula.");
+        }
+        if (d <= 0) {
+            throw new Exception("La duración debe ser positiva.");
+        }
+        if (d > getJornada()) {
+            throw new Exception("La duración no puede superar la jornada.");
+        }
+
+        LocalDate fecha = desde;
+        while (buscarPrimerHueco(fecha, d) == null) {
+            fecha = siguienteDia(fecha);
+        }
+        return fecha;
+    }
+
+    /**
+     * Devuelve los minutos libres que quedan en una fecha.
+     *
+     * @param fecha Fecha consultada.
+     * @return Minutos libres en la jornada de ese día.
+     * @throws Exception Si la fecha es nula.
+     */
+    public int getTiempoLibre(LocalDate fecha) throws Exception {
+        if (fecha == null) {
+            throw new Exception("La fecha no puede ser nula.");
+        }
+
+        int ocupado = 0;
+        for (Cita cita : citas) {
+            if (cita.getFecha().equals(fecha)) {
+                ocupado += cita.getDuracion();
+            }
+        }
+        return getJornada() - ocupado;
+    }
+
+
     private int aMinutos(LocalTime hora) {
         String texto = hora.toString();
         int h = Integer.parseInt(texto.substring(0, 2));
@@ -324,5 +405,65 @@ public class Agenda implements Serializable {
             texto += "  " + cita + "\n";
         }
         return texto;
+    }
+
+    private LocalDate siguienteDia(LocalDate fecha) {
+        int dia = Integer.parseInt(String.format("%1$td", fecha));
+        int mes = Integer.parseInt(String.format("%1$tm", fecha));
+        int anno = Integer.parseInt(String.format("%1$tY", fecha));
+
+        dia++;
+        if (dia > diasDelMes(mes, anno)) {
+            dia = 1;
+            mes++;
+            if (mes > 12) {
+                mes = 1;
+                anno++;
+            }
+        }
+        return LocalDate.of(anno, mes, dia);
+    }
+
+    private int diasDelMes(int mes, int anno) {
+        if (mes == 2) {
+            if ((anno % 4 == 0 && anno % 100 != 0) || (anno % 400 == 0)) {
+                return 29;
+            }
+            return 28;
+        }
+        if (mes == 4 || mes == 6 || mes == 9 || mes == 11) {
+            return 30;
+        }
+        return 31;
+    }
+
+    private LocalTime buscarPrimerHueco(LocalDate fecha, int duracion) {
+        if (duracion > getJornada()) {
+            return null;
+        }
+
+        int numFecha = numeroFecha(fecha);
+        int candidato = aMinutos(apertura);
+        for (Cita cita : citas) {
+            int fechaCita = numeroFecha(cita.getFecha());
+            if (fechaCita < numFecha) {
+                continue;
+            }
+            if (fechaCita > numFecha) {
+                break;
+            }
+            int inicioCita = aMinutos(cita.getInicio());
+            if (inicioCita - candidato >= duracion) {
+                return deMinutos(candidato);
+            }
+            int finCita = aMinutos(cita.getFin());
+            if (finCita > candidato) {
+                candidato = finCita;
+            }
+        }
+        if (aMinutos(cierre) - candidato >= duracion) {
+            return deMinutos(candidato);
+        }
+        return null;
     }
 }
