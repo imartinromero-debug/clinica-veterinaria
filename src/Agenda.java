@@ -168,7 +168,21 @@ public class Agenda implements Serializable {
         }
         return citas.get(posicion);
     }
+    public void cancelar(String cliente, LocalDate fecha) throws Exception {
+        if (cliente == null || cliente.isBlank()) {
+            throw new Exception("El cliente no puede ser nulo ni vacío.");
+        }
+        if (fecha == null) {
+            throw new Exception("La fecha no puede ser nula.");
+        }
+        int posicion = buscarPosicion(cliente, fecha);
+        if (posicion < 0) {
+            throw new Exception(
+                    "No existe una cita de ese cliente en esa fecha.");
+        }
 
+        citas.remove(posicion);
+    }
     private int aMinutos(LocalTime hora) {
         String texto = hora.toString();
         int h = Integer.parseInt(texto.substring(0, 2));
