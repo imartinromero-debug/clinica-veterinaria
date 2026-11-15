@@ -147,6 +147,7 @@ public class Agenda implements Serializable {
         citas.add(posicionDeInsercion(c), c);
     }
 
+
     /**
      * Devuelve la cita de un cliente en una fecha.
      *
@@ -246,5 +247,82 @@ public class Agenda implements Serializable {
     }
     private boolean seSolapan(int inicio1, int fin1, int inicio2, int fin2) {
         return inicio1 < fin2 && inicio2 < fin1;
+    }
+    /**
+     * Devuelve una lista nueva con las citas de una fecha concreta.
+     *
+     * @param fecha Fecha consultada.
+     * @return Lista con las citas de ese día en orden.
+     * @throws Exception Si la fecha es nula.
+     */
+    public ArrayList<Cita> getCitasDel(LocalDate fecha) throws Exception {
+        if (fecha == null) {
+            throw new Exception("La fecha no puede ser nula.");
+        }
+
+        ArrayList<Cita> resultado = new ArrayList<>();
+        for (Cita cita : citas) {
+            if (cita.getFecha().equals(fecha)) {
+                resultado.add(cita);
+            }
+        }
+        return resultado;
+    }
+
+    /**
+     * Devuelve una lista nueva con las citas entre dos fechas, ambas incluidas.
+     *
+     * @param desde Fecha inicial.
+     * @param hasta Fecha final.
+     * @return Lista ordenada con las citas del periodo.
+     * @throws Exception Si alguna fecha es nula o desde es posterior a hasta.
+     */
+    private int numeroFecha(LocalDate fecha) {
+        int dia = Integer.parseInt(String.format("%1$td", fecha));
+        int mes = Integer.parseInt(String.format("%1$tm", fecha));
+        int anno = Integer.parseInt(String.format("%1$tY", fecha));
+        return anno * 10000 + mes * 100 + dia;
+    }
+    public ArrayList<Cita> getCitasEntre(LocalDate desde, LocalDate hasta)
+            throws Exception {
+        if (desde == null || hasta == null) {
+            throw new Exception("Las fechas no pueden ser nulas.");
+        }
+        int numDesde = numeroFecha(desde);
+        int numHasta = numeroFecha(hasta);
+        if (numDesde > numHasta) {
+            throw new Exception(
+                    "La fecha inicial no puede ser posterior a la final.");
+        }
+
+        ArrayList<Cita> resultado = new ArrayList<>();
+        for (Cita cita : citas) {
+            int numCita = numeroFecha(cita.getFecha());
+            if (numCita >= numDesde && numCita <= numHasta) {
+                resultado.add(cita);
+            }
+        }
+        return resultado;
+    }
+    @Override
+    public String toString() {
+        if (citas.size() == 0) {
+            return "Agenda sin citas.";
+        }
+
+        String texto = "";
+        LocalDate anterior = null;
+        for (Cita cita : citas) {
+            if (anterior == null || !cita.getFecha().equals(anterior)) {
+                if (anterior != null) {
+                    texto += "\n";
+                }
+                texto += String.format("%1$td/%1$tm/%1$tY", cita.getFecha())
+                        + "\n";
+                anterior = cita.getFecha();
+            }
+            texto += "  " + cita + "\n";
+        }
+        return texto;
     }
 }
