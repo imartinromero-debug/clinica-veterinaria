@@ -111,3 +111,4 @@ void main() {
     IO.println("Citas antes de los fallos: " + numAntes
             + " | después de los fallos: " + agenda.getNumCitas());
 }
+

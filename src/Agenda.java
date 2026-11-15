@@ -329,6 +329,7 @@ public class Agenda implements Serializable {
         return true;
     }
 
+
     /**
      * Indica si un intervalo está dentro del horario y no se solapa con otra cita.
      *

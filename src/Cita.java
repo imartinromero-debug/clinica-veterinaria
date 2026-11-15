@@ -72,6 +72,7 @@ public class Cita implements Serializable {
         return duracion;
     }
 
+
     /**
      * Devuelve la hora de finalización sumando la duración al inicio.
      *
