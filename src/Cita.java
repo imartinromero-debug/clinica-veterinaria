@@ -1,34 +1,55 @@
+/*
+ * Archivo Cita.java
+ * Práctica 2. Gestión de una clínica veterinaria
+ */
+
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-public class Cita implements Serializable {
+/**
+ * Clase abstracta que representa una cita dentro de una agenda.
+ * Sus observadoras son final para conservar el invariante en las subclases, y
+ * cada subclase redefine conInicio para copiar su propio tipo.
+ */
+public abstract class Cita implements Serializable {
 
     private String cliente;
     private LocalDate fecha;
     private LocalTime inicio;
     private int duracion;
 
-    public Cita(String cliente, LocalDate fecha, LocalTime inicio, int duracion)
-            throws Exception {
+    /**
+     * Construye una cita comprobando que todos sus datos sean válidos.
+     *
+     * @param cliente Identificador del cliente de la cita.
+     * @param fecha Fecha de la cita.
+     * @param inicio Hora de inicio de la cita.
+     * @param duracion Duración en minutos.
+     * @throws ArgumentoException Si algún dato es nulo, vacío o supera el día.
+     */
+    protected Cita(String cliente, LocalDate fecha, LocalTime inicio,
+                   int duracion) throws ArgumentoException {
         if (cliente == null || cliente.isBlank()) {
-            throw new Exception("El cliente no puede ser nulo ni vacío.");
+            throw new ArgumentoException(
+                    "El cliente no puede ser nulo ni vacío.");
         }
         if (fecha == null) {
-            throw new Exception("La fecha no puede ser nula.");
+            throw new ArgumentoException("La fecha no puede ser nula.");
         }
         if (inicio == null) {
-            throw new Exception("La hora de inicio no puede ser nula.");
+            throw new ArgumentoException(
+                    "La hora de inicio no puede ser nula.");
         }
         if (duracion <= 0) {
-            throw new Exception("La duración debe ser positiva.");
+            throw new ArgumentoException("La duración debe ser positiva.");
         }
 
         String textoHora = inicio.toString();
         int h = Integer.parseInt(textoHora.substring(0, 2));
         int m = Integer.parseInt(textoHora.substring(3, 5));
         if (h * 60 + m + duracion > 24 * 60) {
-            throw new Exception("La cita supera el final del día.");
+            throw new ArgumentoException("La cita supera el final del día.");
         }
 
         this.cliente = cliente;
@@ -36,12 +57,13 @@ public class Cita implements Serializable {
         this.inicio = inicio;
         this.duracion = duracion;
     }
+
     /**
      * Devuelve el cliente de la cita.
      *
      * @return Identificador del cliente.
      */
-    public String getCliente() {
+    public final String getCliente() {
         return cliente;
     }
 
@@ -50,7 +72,7 @@ public class Cita implements Serializable {
      *
      * @return Fecha de la cita.
      */
-    public LocalDate getFecha() {
+    public final LocalDate getFecha() {
         return fecha;
     }
 
@@ -59,7 +81,7 @@ public class Cita implements Serializable {
      *
      * @return Hora de inicio.
      */
-    public LocalTime getInicio() {
+    public final LocalTime getInicio() {
         return inicio;
     }
 
@@ -68,17 +90,16 @@ public class Cita implements Serializable {
      *
      * @return Duración en minutos.
      */
-    public int getDuracion() {
+    public final int getDuracion() {
         return duracion;
     }
-
 
     /**
      * Devuelve la hora de finalización sumando la duración al inicio.
      *
      * @return Hora de fin de la cita.
      */
-    public LocalTime getFin() {
+    public final LocalTime getFin() {
         String textoHora = inicio.toString();
         int h = Integer.parseInt(textoHora.substring(0, 2));
         int m = Integer.parseInt(textoHora.substring(3, 5));
@@ -90,15 +111,14 @@ public class Cita implements Serializable {
     }
 
     /**
-     * Crea una copia de esta cita que comienza a otra hora.
+     * Crea una copia de esta cita del mismo subtipo que comienza a otra hora.
      *
      * @param nuevoInicio Nueva hora de inicio.
      * @return Nueva cita con la hora actualizada.
-     * @throws Exception Si la nueva hora es nula o inválida.
+     * @throws ArgumentoException Si la nueva hora es nula o inválida.
      */
-    public Cita conInicio(LocalTime nuevoInicio) throws Exception {
-        return new Cita(cliente, fecha, nuevoInicio, duracion);
-    }
+    public abstract Cita conInicio(LocalTime nuevoInicio)
+            throws ArgumentoException;
 
     @Override
     public String toString() {
